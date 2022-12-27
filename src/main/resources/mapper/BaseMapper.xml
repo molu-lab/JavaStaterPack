@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.home.BaseMapper">
+	<update id="createTable">
+		<![CDATA[
+			CREATE TABLE IF NOT EXISTS "HOME" (
+				"hid"	INTEGER,
+				"name"  NOT NULL UNIQUE,
+				"origin"	TEXT,
+				"home_url"	TEXT,
+				"notice_url"	TEXT,
+				"dliv_url"	TEXT,
+				"mlsv_url"	TEXT,
+				"create_date"	TEXT,
+				PRIMARY KEY("hid" AUTOINCREMENT)
+			);
+		]]>
+	</update>
+	<insert id="addHome" parameterType="com.example.home.domains.Home">
+		<![CDATA[
+			INSERT INTO "HOME"(
+				"name",
+				"origin",
+				"home_url",
+				"notice_url",
+				"dliv_url",
+				"mlsv_url",
+				"create_date"
+			) values (
+				#{name},
+				#{origin},
+				#{home_url},
+				#{notice_url},
+				#{dliv_url},
+				#{mlsv_url},
+				datetime('now','localtime')
+			)ON CONFLICT("name") DO UPDATE SET
+				origin = #{origin},
+				"home_url" = #{home_url},
+				"notice_url" = #{notice_url},
+				"dliv_url" = #{dliv_url},
+				"mlsv_url" = #{mlsv_url},
+				"create_date" = datetime('now','localtime')
+
+		]]>
+	</insert>
+	<select id="getDate" resultType="Date">
+		<![CDATA[
+			SELECT datetime('now','localtime')
+		]]>
+	</select>
+	<delete id="deleteTable" parameterType="java.lang.String">
+		<![CDATA[
+			DELETE FROM "HOME"
+		]]>
+
+	</delete>
+	<update id="resetTableSequence" parameterType="String">
+		<![CDATA[
+			UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE name = #{tableName}
+		]]>
+	</update>
+	<select id="getHome" parameterType="String" resultType="com.example.home.domains.Home">
+		<![CDATA[
+			SELECT *
+			FROM "HOME"
+			WHERE "name" = #{name}
+		]]>
+	</select>
+</mapper>

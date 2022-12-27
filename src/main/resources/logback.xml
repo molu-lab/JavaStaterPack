@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+	logback-core
+	logback-classic
+	slf4j-api
+	janino
+	jcl-over-slf4j
+ -->
+<!--
+	기능적 고려
+	1. 스캔 여부 결정
+	2. 콘솔 타입 패턴 결정
+	3. 파일 타입 패턴 결정
+	4. 상세 옵션 시간기반, 파일크기 기반 분산 저장
+ -->
+
+<!--
+수준
+ERROR : 알림
+WARN : 주의
+INFO : 기타정보
+DEBUG : 디버깅정보
+TRACE : 추적용
+TRACE - TRACE, DEBUG, INFO, WARN, ERROR
+DEBUG - DEBUG, INFO, WARN, ERROR
+INFO - INFO, WARN, ERROR(개발 추천)
+WARN - WARN, ERROR(운영 추천)
+ERROR - ERROR
+OFF - OFF
+ -->
+
+<!-- <configuration scan="true" scanPeriod="30 seconds"> -->
+<configuration>
+    <property name="path" value="${LOG_HOME}"></property>
+    <if condition='!isNull("${LOG_HOME}")'>
+        <then>
+            <property name="log_path" value="${LOG_HOME}/logs"></property>
+            <!-- 콘솔로 로그를 남김 -->
+            <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder>
+                    <charset>UTF-8</charset>
+                    <!-- 로그 메시지 패턴 -->
+                    <Pattern>
+                        BaseSpringLegacy - %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
+                    </Pattern>
+                </encoder>
+            </appender>
+            <!-- 파일로 로그를 남김 -->
+            <appender name="fileAppender2" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <file>${log_path}/server.log</file>
+                <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                    <Pattern>
+                        BaseSpringLegacy - %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
+                    </Pattern>
+                </encoder>
+                <!--
+                    시간 기반  파일 나누기 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+                 -->
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <!-- 시간포멧표시 형식에 따라 파일을 나눔 -->
+                    <fileNamePattern>${log_path}\server.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                    <timeBasedFileNamingAndTriggeringPolicy  class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                        <!-- or whenever the file size reaches 50MB -->
+                        <maxFileSize>10MB</maxFileSize>
+                    </timeBasedFileNamingAndTriggeringPolicy>
+                    <!-- keep 30 days' worth of history -->
+                    <maxHistory>30</maxHistory>
+                    <totalSizeCap>100MB</totalSizeCap>
+                </rollingPolicy>
+                <!--
+                    시간 기반  파일 나누기 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+                 -->
+                <!--
+                    사이즈 기반  파일 나누기 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+                 -->
+                <!-- 로그를 남기는 파일의 용량이 50KB가 넘으면 이를 압축 파일로 만들고 새로 로그 파일로 만들라는 정책 -->
+                <!--
+                <triggeringPolicy  class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                    <MaxFileSize>15KB</MaxFileSize>
+                </triggeringPolicy>
+                 -->
+
+                <!-- 파일을 덮어쓰는 정책 -->
+                <!--
+                    MinIndex가 1, MaxIndex가 10
+                    log.1.log.zip
+                    log.2.log.zip
+                    log.3.log.zip
+                    ...
+                    10kb 초과
+                    log.4.log.zip
+                -->
+                <!--
+                    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                        <FileNamePattern>${log_path}/log.%i.log</FileNamePattern>
+
+                        <MinIndex>1</MinIndex>
+                        <MaxIndex>10</MaxIndex>
+                        <maxHistory>45</maxHistory>
+                        <totalSizeCap>3GB</totalSizeCap>
+                    </rollingPolicy>
+                 -->
+                <!--
+                   사이즈 기반  파일 나누기  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+                -->
+            </appender>
+            <!-- root는 글로벌 로거를 의미하며, 위의 logger에 해당하지 않으면 root 로거가 실행된다. -->
+            <root level="warn">
+                <appender-ref ref="consoleAppender" />
+                <appender-ref ref="fileAppender2" />
+            </root>
+            <!-- root는 글로벌 로거를 의미하며, 위의 logger에 해당하지 않으면 root 로거가 실행된다. -->
+            <root level="info">
+                <appender-ref ref="consoleAppender" />
+                <appender-ref ref="fileAppender2" />
+            </root>
+            <!-- root는 글로벌 로거를 의미하며, 위의 logger에 해당하지 않으면 root 로거가 실행된다. -->
+            <root level="info">
+                <appender-ref ref="fileAppender2" />
+            </root>
+        </then>
+    </if>
+</configuration>
