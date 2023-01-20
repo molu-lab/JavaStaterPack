@@ -8,7 +8,7 @@ ERROR - ERROR
 OFF - OFF
  -->
 <configuration>
-    <property name="path" value="${log_home}"></property>
+    <property name="path" value="${LOG_HOME}"></property>
     <if condition='isDefined("path")'>
         <then>
             <property name="log_path" value="${path}/logs"></property>
