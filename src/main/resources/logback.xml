@@ -1,27 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-
-	logback-core
-	logback-classic
-	slf4j-api
-	janino
-	jcl-over-slf4j
- -->
-<!--
-	기능적 고려
-	1. 스캔 여부 결정
-	2. 콘솔 타입 패턴 결정
-	3. 파일 타입 패턴 결정
-	4. 상세 옵션 시간기반, 파일크기 기반 분산 저장
- -->
 
 <!--
-수준
-ERROR : 알림
-WARN : 주의
-INFO : 기타정보
-DEBUG : 디버깅정보
-TRACE : 추적용
 TRACE - TRACE, DEBUG, INFO, WARN, ERROR
 DEBUG - DEBUG, INFO, WARN, ERROR
 INFO - INFO, WARN, ERROR(개발 추천)
@@ -29,29 +7,33 @@ WARN - WARN, ERROR(운영 추천)
 ERROR - ERROR
 OFF - OFF
  -->
-
-<!-- <configuration scan="true" scanPeriod="30 seconds"> -->
 <configuration>
-    <property name="path" value="${LOG_HOME}"></property>
-    <if condition='!isNull("${LOG_HOME}")'>
+    <property name="path" value="${log_home}"></property>
+    <if condition='isDefined("path")'>
         <then>
-            <property name="log_path" value="${LOG_HOME}/logs"></property>
+            <property name="log_path" value="${path}/logs"></property>
             <!-- 콘솔로 로그를 남김 -->
             <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
                 <encoder>
                     <charset>UTF-8</charset>
                     <!-- 로그 메시지 패턴 -->
                     <Pattern>
-                        BaseSpringLegacy - %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
+                        %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
                     </Pattern>
                 </encoder>
             </appender>
             <!-- 파일로 로그를 남김 -->
             <appender name="fileAppender2" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                    <level>error</level>
+                    <onMatch>ACCEPT</onMatch>
+                    <onMismatch>DENY</onMismatch>
+                </filter>
+
                 <file>${log_path}/server.log</file>
                 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
                     <Pattern>
-                        BaseSpringLegacy - %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
+                        %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
                     </Pattern>
                 </encoder>
                 <!--
@@ -106,19 +88,11 @@ OFF - OFF
                 -->
             </appender>
             <!-- root는 글로벌 로거를 의미하며, 위의 logger에 해당하지 않으면 root 로거가 실행된다. -->
-            <root level="warn">
-                <appender-ref ref="consoleAppender" />
-                <appender-ref ref="fileAppender2" />
-            </root>
-            <!-- root는 글로벌 로거를 의미하며, 위의 logger에 해당하지 않으면 root 로거가 실행된다. -->
             <root level="info">
                 <appender-ref ref="consoleAppender" />
-                <appender-ref ref="fileAppender2" />
-            </root>
-            <!-- root는 글로벌 로거를 의미하며, 위의 logger에 해당하지 않으면 root 로거가 실행된다. -->
-            <root level="info">
                 <appender-ref ref="fileAppender2" />
             </root>
         </then>
     </if>
+
 </configuration>
